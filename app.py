@@ -38,7 +38,7 @@ def main():
 
 @st.cache
 def load_data():
-    data = pd.read_csv('ad_skills.csv')
+    data = pd.read_csv('Data/ad_skills.csv')
     return data
 
 def get_skills(data, category):
