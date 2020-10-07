@@ -33,18 +33,37 @@ def main():
     sorted_skills = sort_skills(skills, skill_no)
 
     chart_skills(category, sorted_skills)
+
+    unique_skills = get_all_skills(data)
+
+    selected_skills = st.sidebar.multiselect("Select skills to match with a job title:", unique_skills)
+
+    #match_jobs(selected_skills)
+    #st.write(selected_skills)
+
     word_cloud(skills)
 
 
 @st.cache
 def load_data():
-    data = pd.read_csv('Data/ad_skills.csv')
+    data = pd.read_csv('Data/skills2.csv')
+    for ind in data.index: 
+        data["skills"][ind] = ast.literal_eval(data["skills"][ind])
     return data
 
 def get_skills(data, category):
-    s = data.loc[data['category'] == category, ['skills']]
-    skills = ast.literal_eval(s.iloc[0].values[0])
-    return skills 
+    skills = data.loc[data['category'] == category, ['skills']]
+    return skills.iloc[0][0]
+
+@st.cache
+def get_all_skills(data):
+    skill_list = []
+    for d in data["skills"]:
+        skill_list = skill_list + list(d.keys()) 
+
+    list_set = set(skill_list) 
+    unique_list = list(list_set)
+    return unique_list
 
 def sort_skills(skills, skill_no):
     sorted_skills = dict(Counter(skills).most_common(skill_no)) 
@@ -55,7 +74,7 @@ def chart_skills(category, skills):
     "**Top 5 skills for**", category
 
     c = alt.Chart(df.reset_index()).mark_bar(color='firebrick', opacity=0.5).encode(
-        alt.X('occurrences', title='Number of occurrences', axis=alt.Axis(tickMinStep=1)),
+        alt.X('occurrences', title='Skill popularity', axis=alt.Axis(tickMinStep=1)),
         alt.Y('index', title='Skill'),
         color=alt.Color('index', legend=None)
     ).properties(
@@ -63,6 +82,14 @@ def chart_skills(category, skills):
         height=250
     ).configure_axis(grid=False)
     st.write(c)
+
+#def match_jobs(skills, data):
+#    d = {}
+#    for skill in skills:
+#        for ind in data.index:
+#            if skill in data['job_requirements']:
+#                d[skill] = d.get(skill, 0)+1
+
 
 def word_cloud(skills):
     wordcloud = WordCloud(background_color='white').generate_from_frequencies(skills)
