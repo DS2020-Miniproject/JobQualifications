@@ -20,31 +20,32 @@ def main():
     st.markdown("")
 
     data = load_data()
+    all_skills, unique_skills, skill_dict = get_all_skills(data)
+    skill_df = create_matrix(all_skills, data)
 
     category = st.sidebar.selectbox(
         'Select a job category',
         data['category'])
     
-    skills = get_skills(data, category)
+    job_skills = get_skills(data, category)
 
     skill_no = st.sidebar.slider("Choose the number of skills displayed: ", min_value=1,   
                        max_value=10, value=10, step=1)
     
-    sorted_skills = sort_skills(skills, skill_no)
+    sorted_skills = sort_skills(job_skills, skill_no)
 
     chart_skills(category, sorted_skills)
 
-    all_skills, unique_skills = get_all_skills(data)
 
     selected_skills = st.sidebar.multiselect("Select skills to match with a job title:", unique_skills)
-
-    skill_df = create_matrix(all_skills, data)
 
     if selected_skills:
         top_jobs = match_jobs(skill_df, selected_skills)
         visualize_jobs(top_jobs)
 
-    word_cloud(skills)
+    st.markdown("**Top 50 job skills**")
+
+    word_cloud(skill_dict)
 
 
 @st.cache
@@ -63,13 +64,14 @@ def get_skills(data, category):
 @st.cache
 def get_all_skills(data):
     skill_list = []
+    all_skills = {}
     for d in data["skills"]:
         skill_list = skill_list + list(d.keys()) 
-
+        all_skills = dict(Counter(all_skills)+Counter(d))
     list_set = set(skill_list) 
     unique_list = list(list_set)
 
-    return skill_list, unique_list
+    return skill_list, unique_list, all_skills
 
 def sort_skills(skills, skill_no):
     sorted_skills = dict(Counter(skills).most_common(skill_no)) 
@@ -127,9 +129,9 @@ def visualize_jobs(top_jobs):
     plt.show()
     st.pyplot(fig)
 
-
 def word_cloud(skills):
-    wordcloud = WordCloud(background_color='white').generate_from_frequencies(skills)
+    sorted_skills = sort_skills(skills, 50)
+    wordcloud = WordCloud(background_color='white').generate_from_frequencies(sorted_skills)
     fig, ax = plt.subplots()
     plt.imshow(wordcloud, interpolation='bilinear')
     plt.axis("off")
