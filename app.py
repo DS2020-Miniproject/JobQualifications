@@ -3,7 +3,6 @@ import numpy as np
 import pandas as pd
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
-from palettable.colorbrewer.qualitative import Pastel1_7
 import ast 
 from collections import Counter
 import altair as alt
@@ -122,7 +121,7 @@ def visualize_jobs(top_jobs):
     "**Top jobs for selected skills**"
     fig, ax = plt.subplots()
     my_circle=plt.Circle( (0,0), 0.7, color='white')
-    plt.pie(size, labels=names, colors=Pastel1_7.hex_colors)
+    plt.pie(size, labels=names)
     p=plt.gcf()
     p.gca().add_artist(my_circle)
     plt.show()
