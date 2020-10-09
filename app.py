@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
+from palettable.colorbrewer.qualitative import Pastel1_7
 import ast 
 from collections import Counter
 import altair as alt
@@ -34,12 +35,15 @@ def main():
 
     chart_skills(category, sorted_skills)
 
-    unique_skills = get_all_skills(data)
+    all_skills, unique_skills = get_all_skills(data)
 
     selected_skills = st.sidebar.multiselect("Select skills to match with a job title:", unique_skills)
 
-    #match_jobs(selected_skills)
-    #st.write(selected_skills)
+    skill_df = create_matrix(all_skills, data)
+
+    if selected_skills:
+        top_jobs = match_jobs(skill_df, selected_skills)
+        visualize_jobs(top_jobs)
 
     word_cloud(skills)
 
@@ -49,10 +53,12 @@ def load_data():
     data = pd.read_csv('Data/skills2.csv')
     for ind in data.index: 
         data["skills"][ind] = ast.literal_eval(data["skills"][ind])
+
     return data
 
 def get_skills(data, category):
     skills = data.loc[data['category'] == category, ['skills']]
+
     return skills.iloc[0][0]
 
 @st.cache
@@ -63,10 +69,12 @@ def get_all_skills(data):
 
     list_set = set(skill_list) 
     unique_list = list(list_set)
-    return unique_list
+
+    return skill_list, unique_list
 
 def sort_skills(skills, skill_no):
     sorted_skills = dict(Counter(skills).most_common(skill_no)) 
+
     return sorted_skills
 
 def chart_skills(category, skills):
@@ -83,12 +91,42 @@ def chart_skills(category, skills):
     ).configure_axis(grid=False)
     st.write(c)
 
-#def match_jobs(skills, data):
-#    d = {}
-#    for skill in skills:
-#        for ind in data.index:
-#            if skill in data['job_requirements']:
-#                d[skill] = d.get(skill, 0)+1
+@st.cache(allow_output_mutation=True)
+def create_matrix(all_skills, data):
+    skills_matrix = []
+    for job_skill in data["skills"]:
+        vector = [0] * len(all_skills)
+        for skill in job_skill.keys():
+            vector[all_skills.index(skill)] = 1
+        skills_matrix.append(vector)
+    SkillsDf = pd.DataFrame(skills_matrix, columns=all_skills)
+    SkillsDf['Job'] = data.category
+    SkillsDf["count"] = [0] * len(SkillsDf.index)
+    
+    return SkillsDf
+
+def match_jobs(skillDf, selected_skills):
+    skill_df = skillDf.copy()
+    for skill in selected_skills:
+        skill_df["count"] = skill_df.apply(lambda x: x["count"] + x[skill], axis=1)
+    skill_df = skill_df[["Job", "count"]]
+    skill_df = skill_df.sort_values("count", ascending=False)
+    top_skills = skill_df.iloc[0:5]
+
+    return top_skills
+
+def visualize_jobs(top_jobs):
+    top_jobs = top_jobs[top_jobs['count'] > 0]
+    names = top_jobs['Job'].tolist()
+    size = top_jobs['count'].tolist()
+    "**Top jobs for selected skills**"
+    fig, ax = plt.subplots()
+    my_circle=plt.Circle( (0,0), 0.7, color='white')
+    plt.pie(size, labels=names, colors=Pastel1_7.hex_colors)
+    p=plt.gcf()
+    p.gca().add_artist(my_circle)
+    plt.show()
+    st.pyplot(fig)
 
 
 def word_cloud(skills):
