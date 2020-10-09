@@ -123,8 +123,9 @@ def visualize_jobs(top_jobs):
     "**Top jobs for selected skills**"
     fig, ax = plt.subplots()
     my_circle=plt.Circle( (0,0), 0.7, color='white')
-    plt.pie(size, labels=names)
+    plt.pie(size, labels=names, textprops={'fontsize': 14})
     p=plt.gcf()
+    p.set_size_inches(10,10)
     p.gca().add_artist(my_circle)
     plt.show()
     st.pyplot(fig)
