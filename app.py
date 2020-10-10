@@ -34,7 +34,7 @@ def main():
     
     sorted_skills = sort_skills(job_skills, skill_no)
 
-    chart_skills(category, sorted_skills)
+    chart_skills(category, sorted_skills, skill_no)
 
 
     selected_skills = st.sidebar.multiselect("Select skills to match with a job title:", unique_skills)
@@ -50,7 +50,7 @@ def main():
 
 @st.cache
 def load_data():
-    data = pd.read_csv('Data/skills2.csv')
+    data = pd.read_csv('Data/skills3.csv')
     for ind in data.index: 
         data["skills"][ind] = ast.literal_eval(data["skills"][ind])
 
@@ -78,9 +78,9 @@ def sort_skills(skills, skill_no):
 
     return sorted_skills
 
-def chart_skills(category, skills):
+def chart_skills(category, skills, skill_no):
     df = pd.DataFrame.from_dict(skills, orient='index', columns=['occurrences'])
-    "**Top 5 skills for**", category
+    st.markdown(f"**Top {skill_no} skills for {category}**")
 
     c = alt.Chart(df.reset_index()).mark_bar(color='firebrick', opacity=0.5).encode(
         alt.X('occurrences', title='Skill popularity', axis=alt.Axis(tickMinStep=1)),
@@ -120,7 +120,7 @@ def visualize_jobs(top_jobs):
     top_jobs = top_jobs[top_jobs['count'] > 0]
     names = top_jobs['Job'].tolist()
     size = top_jobs['count'].tolist()
-    "**Top jobs for selected skills**"
+    st.markdown("**Top jobs for selected skills**")
     fig, ax = plt.subplots()
     my_circle=plt.Circle( (0,0), 0.7, color='white')
     plt.pie(size, labels=names, textprops={'fontsize': 14})
