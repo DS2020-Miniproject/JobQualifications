@@ -23,6 +23,7 @@ def main():
     all_skills, unique_skills, skill_dict = get_all_skills(data)
     skill_df = create_matrix(all_skills, data)
 
+    st.sidebar.markdown("# Skills search")
     category = st.sidebar.selectbox(
         'Select a job category',
         data['category'])
@@ -36,7 +37,7 @@ def main():
 
     chart_skills(category, sorted_skills, skill_no)
 
-
+    st.sidebar.markdown("# Job title search")
     selected_skills = st.sidebar.multiselect("Select skills to match with a job title:", unique_skills)
 
     if selected_skills:
@@ -84,12 +85,12 @@ def chart_skills(category, skills, skill_no):
 
     c = alt.Chart(df.reset_index()).mark_bar(color='firebrick', opacity=0.5).encode(
         alt.X('occurrences', title='Skill popularity', axis=alt.Axis(tickMinStep=1)),
-        alt.Y('index', title='Skill'),
+        alt.Y('index', title=' '),
         color=alt.Color('index', legend=None)
     ).properties(
         width=700,
         height=250
-    ).configure_axis(grid=False)
+    ).configure_axis(grid=False, labelFontSize=16)
     st.write(c)
 
 @st.cache(allow_output_mutation=True)
